@@ -1,0 +1,6 @@
+Periodo (data de começo - data de fim)
+Funcionário
+Serviço
+
+campos a ser exibidos no relatório
+Nome do funcionário, data/hora inicio, data/hora fim, serviço, ssenha, prioridade
