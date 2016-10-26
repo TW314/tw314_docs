@@ -1,11 +1,10 @@
-USE `tw314`;
-DROP procedure IF EXISTS `PRC_GERAR_TICKET`;
-
-DELIMITER $$
-USE `tw314`$$
-CREATE PROCEDURE `PRC_GERAR_TICKET`( IN  P_EMPRESA_ID 	   		INT,
-									 IN  P_SERVICO_ID 	   		INT,
-                                     IN  P_PRIORITARIO 		BOOLEAN)
+CREATE PROCEDURE `PRC_GERAR_TICKET`( IN  P_EMPRESA_ID 	   		INT    ,
+																IN  P_SERVICO_ID 	   		INT    ,
+																IN  P_PRIORITARIO 		BOOLEAN	   ,
+															    OUT P_CODIGO_ACESSO		VARCHAR(15),
+																OUT P_TICKET			VARCHAR(10),
+																OUT P_CODIGO				INT	   ,
+																OUT P_MENSAGEM			VARCHAR(255))
 BEGIN
 	DECLARE C_TICKET			INT	   ;
     DECLARE C_SIGLA				INT	   ;
@@ -14,8 +13,8 @@ BEGIN
     DECLARE V_PRIORIDADE	VARCHAR(11);
     DECLARE V_SIGLA_SERVICO VARCHAR(10);
     
-    START TRANSACTION;
-		IF (P_EMPRESA_ID IS NOT NULL && P_SERVICO_ID IS NOT NULL && P_PRIORITARIO IS NOT NULL) THEN
+    IF (P_EMPRESA_ID IS NOT NULL && P_SERVICO_ID IS NOT NULL && P_PRIORITARIO IS NOT NULL) THEN
+		START TRANSACTION;
 			SELECT COUNT(*)
 			  INTO C_TICKET
               FROM TICKET
@@ -64,15 +63,24 @@ BEGIN
 							CONCAT(DATE_FORMAT(SYSDATE(), '%Y%m%d'), V_SIGLA_SERVICO, V_NR_TICKET), 
 							V_NR_TICKET, SYSDATE(), V_PRIORIDADE, SYSDATE(), SYSDATE(), 1, P_EMPRESA_ID, P_SERVICO_ID);
 					COMMIT;
+                
+					SELECT CODIGO_ACESSO, CONCAT(V_SIGLA_SERVICO, NUMERO_TICKET), 0, 'Sucesso'
+					  INTO P_CODIGO_ACESSO, P_TICKET, P_CODIGO, P_MENSAGEM
+					  FROM TICKET
+					 WHERE CODIGO_ACESSO = CONCAT(DATE_FORMAT(SYSDATE(), '%Y%m%d'), V_SIGLA_SERVICO, V_NR_TICKET);
 				ELSE
+					SELECT 3, 'Erro: Não foi possível localizar o serviço no banco'
+					  INTO P_CODIGO, P_MENSAGEM;
 					ROLLBACK;
 				END IF;
 			ELSE
+				SELECT 2, 'Erro: Serviço não existe ou está inativo'
+                  INTO P_CODIGO, P_MENSAGEM;
 				ROLLBACK;
 			END IF;
-		ELSE
-			ROLLBACK;
-		END IF;
-END;$$
-
-DELIMITER ;
+    ELSE
+		SELECT 1, 'Erro: Parâmetro de entrada vazio. Realizando rollback das transacões'
+		  INTO P_CODIGO, P_MENSAGEM;
+		ROLLBACK;
+	END IF;
+END
