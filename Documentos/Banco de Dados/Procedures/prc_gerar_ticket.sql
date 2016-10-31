@@ -20,50 +20,50 @@ BEGIN
     IF (P_EMPRESA_ID IS NOT NULL && P_SERVICO_ID IS NOT NULL && P_PRIORITARIO IS NOT NULL) THEN
 		SELECT COUNT(*)
           INTO C_EMPRESA
-		  FROM EMPRESA
-		 WHERE ID = P_EMPRESA_ID
-           AND STATUS_ATIVACAO = 'Ativo';
+		  FROM empresa
+		 WHERE id = P_EMPRESA_ID
+           AND status_ativacao = 'Ativo';
 		
         IF (C_EMPRESA > 0) THEN
 			SELECT COUNT(*)
 			  INTO C_SERVICO
-              FROM SERVICO
-			 WHERE ID = P_SERVICO_ID
-			   AND STATUS_ATIVACAO = 'Ativo';
+              FROM servico
+			 WHERE id = P_SERVICO_ID
+			   AND status_ativacao = 'Ativo';
                
 			IF (C_SERVICO > 0) THEN
 				SELECT COUNT(*)
 				  INTO C_SERVICO_VINC
-                  FROM RELACIONAMENTO_EMPRESA_SERVICO
-				 WHERE EMPRESAID = P_EMPRESA_ID
-				   AND SERVICOID = P_SERVICO_ID
-                   AND STATUS_ATIVACAO = 'Ativo';
+                  FROM relacionamento_emp_svc
+				 WHERE empresaId = P_EMPRESA_ID
+				   AND servicoId = P_SERVICO_ID
+                   AND status_ativacao = 'Ativo';
 				
                 IF (C_SERVICO_VINC > 0) THEN
                 	START TRANSACTION;
-						SELECT SIGLA
+						SELECT sigla
 						  INTO V_SIGLA_SERVICO
-						  FROM SERVICO
-						 WHERE ID = P_SERVICO_ID
-						   AND STATUS_ATIVACAO = 'Ativo';
+						  FROM servico
+						 WHERE id = P_SERVICO_ID
+						   AND status_ativacao = 'Ativo';
 						
                         IF (V_SIGLA_SERVICO IS NOT NULL) THEN
 							SELECT COUNT(*)
 							  INTO C_TICKET
-							  FROM TICKET
-							 WHERE EMPRESAID = P_EMPRESA_ID
-							   AND SERVICOID = P_SERVICO_ID
-							   AND DATE(DATA_HORA_EMISSAO) = DATE(SYSDATE());
+							  FROM ticket
+							 WHERE empresaId = P_EMPRESA_ID
+							   AND servicoId = P_SERVICO_ID
+							   AND DATE(data_hora_emissao) = DATE(SYSDATE());
 							
 							IF (C_TICKET = 0) THEN
 								SET V_NR_TICKET = 001;
 							ELSE            
 								SELECT MAX(NUMERO_TICKET)
 								  INTO V_ULTIMO_TICKET
-								  FROM TICKET
-								 WHERE EMPRESAID = P_EMPRESA_ID
-								   AND SERVICOID = P_SERVICO_ID
-								   AND DATE(DATA_HORA_EMISSAO) = DATE(SYSDATE());
+								  FROM ticket
+								 WHERE empresaId = P_EMPRESA_ID
+								   AND servicoId = P_SERVICO_ID
+								   AND DATE(data_hora_emissao) = DATE(SYSDATE());
 								
 								SET V_NR_TICKET = V_ULTIMO_TICKET + 1;
 							END IF;
@@ -75,13 +75,18 @@ BEGIN
 							END IF;
 								
 							INSERT INTO TICKET
-							VALUES (-- CODIGO DE ACESSO EH FORMADO PELA DATA + SIGLA + NUMERO TICKET SENDO GERADO
+							VALUES (-- CODIGO DE ACESSO EH FORMADO PELO IDEMPRESA + DATA + SIGLA + NUMERO TICKET SENDO GERADO + IDSERVICO
 									/*
 									 * PEDRO 2016-10-26 TODO: CRIPTOGRAFAR CODIGO DE ACESSO E REDUZIR NUMERO DE CARACTERES
 									 */
-									CONCAT(DATE_FORMAT(SYSDATE(), '%Y%m%d'), V_SIGLA_SERVICO, V_NR_TICKET), 
+									CONCAT(P_EMPRESA_ID, DATE_FORMAT(SYSDATE(), '%Y%m%d'), V_SIGLA_SERVICO, V_NR_TICKET, P_SERVICO_ID), 
 									V_NR_TICKET, SYSDATE(), V_PRIORIDADE, SYSDATE(), SYSDATE(), 1, P_EMPRESA_ID, P_SERVICO_ID);
 							COMMIT;
+						
+							SELECT codigo_acesso, CONCAT(V_SIGLA_SERVICO, numero_ticket), 0, 'Sucesso'
+							  INTO P_CODIGO_ACESSO, P_TICKET, P_CODIGO, P_MENSAGEM
+							  FROM ticket
+						     WHERE codigo_acesso = CONCAT(P_EMPRESA_ID, DATE_FORMAT(SYSDATE(), '%Y%m%d'), V_SIGLA_SERVICO, V_NR_TICKET, P_SERVICO_ID);
 						ELSE
 							ROLLBACK;
 						END IF;
