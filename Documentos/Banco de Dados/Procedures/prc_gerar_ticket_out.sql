@@ -1,6 +1,6 @@
 CREATE PROCEDURE `PRC_GERAR_TICKET`( IN  P_EMPRESA_ID 	   		INT    ,
 																IN  P_SERVICO_ID 	   		INT    ,
-																IN  P_PRIORITARIO 		BOOLEAN	   ,
+																IN  P_PRIORIDADE 			INT	   ,
 															    OUT P_CODIGO_ACESSO		VARCHAR(20),
 																OUT P_TICKET			VARCHAR(20),
 																OUT P_CODIGO				INT	   ,
@@ -13,24 +13,23 @@ BEGIN
     DECLARE C_SIGLA				INT	   ;
     DECLARE V_NR_TICKET 		INT    ;
     DECLARE V_ULTIMO_TICKET		INT	   ;
-    DECLARE V_PRIORIDADE	VARCHAR(11);
     DECLARE V_SIGLA_SERVICO VARCHAR(10);
     
-    IF (P_EMPRESA_ID IS NOT NULL && P_SERVICO_ID IS NOT NULL && P_PRIORITARIO IS NOT NULL) THEN
+    IF (P_EMPRESA_ID IS NOT NULL && P_SERVICO_ID IS NOT NULL && P_PRIORIDADE IS NOT NULL) THEN
 		SELECT COUNT(*)
           INTO C_EMPRESA
 		  FROM empresa
 		 WHERE id = P_EMPRESA_ID
            AND status_ativacao = 'Ativo';
 		
-        IF (C_EMPRESA > 0) THEN
+        IF (C_EMPRESA = 1) THEN
 			SELECT COUNT(*)
 			  INTO C_SERVICO
               FROM servico
 			 WHERE id = P_SERVICO_ID
 			   AND status_ativacao = 'Ativo';
                
-			IF (C_SERVICO > 0) THEN
+			IF (C_SERVICO = 1) THEN
 				SELECT COUNT(*)
 				  INTO C_SERVICO_VINC
                   FROM relacionamento_emp_svc
@@ -38,7 +37,7 @@ BEGIN
 				   AND servicoId = P_SERVICO_ID
                    AND status_ativacao = 'Ativo';
 				
-                IF (C_SERVICO_VINC > 0) THEN
+                IF (C_SERVICO_VINC = 1) THEN
                 	START TRANSACTION;
 						SELECT sigla
 						  INTO V_SIGLA_SERVICO
@@ -66,20 +65,14 @@ BEGIN
 								
 								SET V_NR_TICKET = V_ULTIMO_TICKET + 1;
 							END IF;
-                        
-							IF (P_PRIORITARIO) THEN
-								SET V_PRIORIDADE := 'Prioritario';
-							ELSE
-								SET V_PRIORIDADE := 'Normal';
-							END IF;
-								
+							
 							INSERT INTO TICKET
 							VALUES (-- CODIGO DE ACESSO EH FORMADO PELO IDEMPRESA + DATA + SIGLA + NUMERO TICKET SENDO GERADO + IDSERVICO
 									/*
 									 * PEDRO 2016-10-26 TODO: CRIPTOGRAFAR CODIGO DE ACESSO E REDUZIR NUMERO DE CARACTERES
 									 */
 									CONCAT(P_EMPRESA_ID, DATE_FORMAT(SYSDATE(), '%Y%m%d'), V_SIGLA_SERVICO, V_NR_TICKET, P_SERVICO_ID), 
-									V_NR_TICKET, SYSDATE(), V_PRIORIDADE, SYSDATE(), SYSDATE(), 1, P_EMPRESA_ID, P_SERVICO_ID);
+                                    NULL, V_NR_TICKET, SYSDATE(), SYSDATE(), SYSDATE(), P_PRIORIDADE, 1, P_EMPRESA_ID, P_SERVICO_ID);
 							COMMIT;
 						
 							SELECT codigo_acesso, CONCAT(V_SIGLA_SERVICO, numero_ticket), 0, 'Sucesso'
@@ -87,28 +80,28 @@ BEGIN
 							  FROM ticket
 						     WHERE codigo_acesso = CONCAT(P_EMPRESA_ID, DATE_FORMAT(SYSDATE(), '%Y%m%d'), V_SIGLA_SERVICO, V_NR_TICKET, P_SERVICO_ID);
 						ELSE
-							SELECT 100, 'Erro: Sigla do Serviço está vazia no sistema'
+							SELECT 100, 'Erro: Sigla do Serviço está vazia no sistema. Realizando rollback das alterações.'
 							  INTO P_CODIGO, P_MENSAGEM;
 							ROLLBACK;
 						END IF;
 					-- FIM DA TRANSACAO
                 ELSE
-					SELECT 3, 'Erro: Serviço não está vinculado nesta empresa'
+					SELECT 3, 'Erro: Serviço não está vinculado nesta empresa. Realizando rollback das alterações.'
 					  INTO P_CODIGO, P_MENSAGEM;
 					ROLLBACK;
                 END IF;
             ELSE
-				SELECT 2, 'Erro: Serviço não existe ou está inativo no sistema'
+				SELECT 2, 'Erro: Serviço não existe ou está inativo no sistema. Realizando rollback das alterações.'
 				  INTO P_CODIGO, P_MENSAGEM;
 				ROLLBACK;
             END IF;
         ELSE
-			SELECT 1, 'Erro: Empresa está inativa no sistema'
+			SELECT 1, 'Erro: Empresa está inativa no sistema. Realizando rollback das alterações.'
 			  INTO P_CODIGO, P_MENSAGEM;
 			ROLLBACK;
         END IF;
     ELSE
-		SELECT -1, 'Erro: Parâmetro de entrada vazio. Realizando rollback das transacões'
+		SELECT -1, 'Erro: Parâmetro de entrada vazio. Realizando rollback das transacões.'
 		  INTO P_CODIGO, P_MENSAGEM;
 		ROLLBACK;
 	END IF;
