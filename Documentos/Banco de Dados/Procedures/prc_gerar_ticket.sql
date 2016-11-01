@@ -23,14 +23,14 @@ BEGIN
 		 WHERE id = P_EMPRESA_ID
            AND status_ativacao = 'Ativo';
 		
-        IF (C_EMPRESA > 0) THEN
+        IF (C_EMPRESA = 1) THEN
 			SELECT COUNT(*)
 			  INTO C_SERVICO
               FROM servico
 			 WHERE id = P_SERVICO_ID
 			   AND status_ativacao = 'Ativo';
                
-			IF (C_SERVICO > 0) THEN
+			IF (C_SERVICO = 1) THEN
 				SELECT COUNT(*)
 				  INTO C_SERVICO_VINC
                   FROM relacionamento_emp_svc
@@ -38,7 +38,7 @@ BEGIN
 				   AND servicoId = P_SERVICO_ID
                    AND status_ativacao = 'Ativo';
 				
-                IF (C_SERVICO_VINC > 0) THEN
+                IF (C_SERVICO_VINC = 1) THEN
                 	START TRANSACTION;
 						SELECT sigla
 						  INTO V_SIGLA_SERVICO

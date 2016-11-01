@@ -1,4 +1,4 @@
-CREATE DEFINER=`root`@`localhost` PROCEDURE `PRC_GERAR_TICKET`( IN  P_EMPRESA_ID 	   		INT    ,
+CREATE PROCEDURE `PRC_GERAR_TICKET`( IN  P_EMPRESA_ID 	   		INT    ,
 																IN  P_SERVICO_ID 	   		INT    ,
 																IN  P_PRIORIDADE 			INT	   ,
 															    OUT P_CODIGO_ACESSO		VARCHAR(20),
@@ -22,14 +22,14 @@ BEGIN
 		 WHERE id = P_EMPRESA_ID
            AND status_ativacao = 'Ativo';
 		
-        IF (C_EMPRESA > 0) THEN
+        IF (C_EMPRESA = 1) THEN
 			SELECT COUNT(*)
 			  INTO C_SERVICO
               FROM servico
 			 WHERE id = P_SERVICO_ID
 			   AND status_ativacao = 'Ativo';
                
-			IF (C_SERVICO > 0) THEN
+			IF (C_SERVICO = 1) THEN
 				SELECT COUNT(*)
 				  INTO C_SERVICO_VINC
                   FROM relacionamento_emp_svc
@@ -37,7 +37,7 @@ BEGIN
 				   AND servicoId = P_SERVICO_ID
                    AND status_ativacao = 'Ativo';
 				
-                IF (C_SERVICO_VINC > 0) THEN
+                IF (C_SERVICO_VINC = 1) THEN
                 	START TRANSACTION;
 						SELECT sigla
 						  INTO V_SIGLA_SERVICO
@@ -80,28 +80,28 @@ BEGIN
 							  FROM ticket
 						     WHERE codigo_acesso = CONCAT(P_EMPRESA_ID, DATE_FORMAT(SYSDATE(), '%Y%m%d'), V_SIGLA_SERVICO, V_NR_TICKET, P_SERVICO_ID);
 						ELSE
-							SELECT 100, 'Erro: Sigla do Serviço está vazia no sistema'
+							SELECT 100, 'Erro: Sigla do Serviço está vazia no sistema. Realizando rollback das alterações.'
 							  INTO P_CODIGO, P_MENSAGEM;
 							ROLLBACK;
 						END IF;
 					-- FIM DA TRANSACAO
                 ELSE
-					SELECT 3, 'Erro: Serviço não está vinculado nesta empresa'
+					SELECT 3, 'Erro: Serviço não está vinculado nesta empresa. Realizando rollback das alterações.'
 					  INTO P_CODIGO, P_MENSAGEM;
 					ROLLBACK;
                 END IF;
             ELSE
-				SELECT 2, 'Erro: Serviço não existe ou está inativo no sistema'
+				SELECT 2, 'Erro: Serviço não existe ou está inativo no sistema. Realizando rollback das alterações.'
 				  INTO P_CODIGO, P_MENSAGEM;
 				ROLLBACK;
             END IF;
         ELSE
-			SELECT 1, 'Erro: Empresa está inativa no sistema'
+			SELECT 1, 'Erro: Empresa está inativa no sistema. Realizando rollback das alterações.'
 			  INTO P_CODIGO, P_MENSAGEM;
 			ROLLBACK;
         END IF;
     ELSE
-		SELECT -1, 'Erro: Parâmetro de entrada vazio. Realizando rollback das transacões'
+		SELECT -1, 'Erro: Parâmetro de entrada vazio. Realizando rollback das transacões.'
 		  INTO P_CODIGO, P_MENSAGEM;
 		ROLLBACK;
 	END IF;
