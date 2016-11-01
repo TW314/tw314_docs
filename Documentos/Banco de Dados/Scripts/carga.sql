@@ -33,11 +33,15 @@ insert into usuario(nome, email, data_ativacao, senha, data_inativacao, status_a
 insert into usuario(nome, email, data_ativacao, senha, data_inativacao, status_ativacao, createdAt, updatedAt, empresaId, perfilId) values('Halu', 'halu@halu.com', sysdate(), '123', sysdate(), 'Ativo', sysdate(), sysdate(), 1, 2);
 insert into usuario(nome, email, data_ativacao, senha, data_inativacao, status_ativacao, createdAt, updatedAt, empresaId, perfilId) values('Pedro', 'pedro@pedro.com', sysdate(), '123', sysdate(), 'Ativo', sysdate(), sysdate(), 1, 2);
 
-CALL PRC_GERAR_TICKET (1, 1, TRUE, @codigo_ticket, @ticket, @codigo, @mensagem);
+CALL PRC_GERAR_TICKET (1, 1, 1, @codigo_ticket, @ticket, @codigo, @mensagem);
+CALL PRC_FILA_SEQUENCIAL ('120161101CB31', @codigo, @mensagem);
 
 SELECT @ticket, @codigo_ticket, @codigo, @mensagem;
 
-SELECT * FROM TICKET ORDER BY 3 DESC; -- WHERE NUMERO_TICKET = '1' ORDER BY 2 DESC;
+SELECT * FROM TICKET ORDER BY 4 DESC;
 
 UPDATE TICKET
    SET numero_sequencial = 1;
+
+SELECT *
+  FROM status_ticket;
