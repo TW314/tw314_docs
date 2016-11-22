@@ -21,3 +21,4 @@ GRADLE: https://docs.gradle.org/current/userguide/userguide.html
 NPM: https://docs.npmjs.com/getting-started/what-is-npm
 MAVEN: https://maven.apache.org/what-is-maven.html
 
+ORM: http://searchwindevelopment.techtarget.com/definition/object-relational-mapping
