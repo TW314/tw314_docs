@@ -1,0 +1,23 @@
+Referências:
+Python: https://wiki.python.org/moin/BeginnersGuide/Overview
+Java: https://java.com/en/download/faq/whatis_java.xml
+Android: https://recombu.com/mobile/article/what-is-android-and-what-is-an-android-phone_M12615.html
+AndroidSDK: https://www.techopedia.com/definition/4220/android-sdk
+JavaScript: http://javascript.about.com/od/reference/p/javascript.htm e http://www.javascripter.net/faq/whatisja.htm
+
+HTML: http://www.yourhtmlsource.com/starthere/whatishtml.html
+XML: http://searchsoa.techtarget.com/definition/XML
+
+CSS: http://webdesign.about.com/od/beginningcss/a/aa021607.htm
+
+MATERIALIZE: http://materializecss.com/about.html
+JQUERY: https://jquery.com
+
+DJANGO: https://www.djangoproject.com/
+NODEJS: http://nodebr.com/o-que-e-node-js/
+SPRING: http://docs.spring.io/spring/docs/current/spring-framework-reference/html/overview.html
+
+GRADLE: https://docs.gradle.org/current/userguide/userguide.html
+NPM: https://docs.npmjs.com/getting-started/what-is-npm
+MAVEN: https://maven.apache.org/what-is-maven.html
+
