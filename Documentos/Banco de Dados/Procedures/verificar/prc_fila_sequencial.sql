@@ -59,43 +59,41 @@ BEGIN
 								SET V_SEQUENCIAL := V_ULTIMO_SEQUENCIAL_PRIORITARIO + 3;
 							END IF;
 
-                            IF(V_SEQUENCIAL <> 1) THEN
+                            SELECT COUNT(*)
+							 INTO  V_CONFERE_SEQUENCIAL
+							 FROM  ticket
+							 WHERE empresaId 		  = V_EMPRESA
+							   AND servicoId 		  = V_SERVICO
+							   AND numero_sequencial  = V_SEQUENCIAL;
 
+							IF(V_CONFERE_SEQUENCIAL > 0) THEN
+								CALL PRC_REORDENA_FILA(V_SEQUENCIAL, V_EMPRESA, V_SERVICO, @CODIGO, @MENSAGEM);
+								SELECT @CODIGO,
+									   @MENSAGEM
+								INTO   V_CODIGO_PROCEDURE_REORDENAR,
+									   V_MENSAGEM_PROCEDURE_REORDENAR;
+							ELSE
 								SELECT COUNT(*)
-								 INTO  V_CONFERE_SEQUENCIAL
-								 FROM  ticket
-								 WHERE empresaId 		  = V_EMPRESA
-								   AND servicoId 		  = V_SERVICO
-								   AND numero_sequencial  = V_SEQUENCIAL;
+								INTO  V_CONFERE_ANTERIOR
+								FROM  ticket
+								WHERE empresaId 		  = V_EMPRESA
+								  AND servicoId 		  = V_SERVICO
+								  AND numero_sequencial   > V_ULTIMO_SEQUENCIAL_PRIORITARIO
+								  AND numero_sequencial   < V_SEQUENCIAL ;
 
-								IF(V_CONFERE_SEQUENCIAL > 0) THEN
-									CALL PRC_REORDENA_FILA(V_SEQUENCIAL, V_EMPRESA, V_SERVICO, @CODIGO, @MENSAGEM);
-                                    SELECT @CODIGO,
-										   @MENSAGEM
-									INTO   V_CODIGO_PROCEDURE_REORDENAR,
-										   V_MENSAGEM_PROCEDURE_REORDENAR;
-								ELSE
-									SELECT COUNT(*)
-									INTO  V_CONFERE_ANTERIOR
-									FROM  ticket
-									WHERE empresaId 		  = V_EMPRESA
-									  AND servicoId 		  = V_SERVICO
-									  AND numero_sequencial   > V_ULTIMO_SEQUENCIAL_PRIORITARIO
-									  AND numero_sequencial   < V_SEQUENCIAL ;
-
-									 IF(V_CONFERE_ANTERIOR = 0) THEN
-										SET V_SEQUENCIAL := V_ULTIMO_SEQUENCIAL_PRIORITARIO + 1;
-									 ELSE
-										SET V_SEQUENCIAL := V_ULTIMO_SEQUENCIAL_PRIORITARIO + 2;
-									 END IF;
-								END IF;
+								 IF(V_CONFERE_ANTERIOR = 0) THEN
+									SET V_SEQUENCIAL := V_ULTIMO_SEQUENCIAL_PRIORITARIO + 1;
+								 ELSE
+									SET V_SEQUENCIAL := V_ULTIMO_SEQUENCIAL_PRIORITARIO + 2;
+								 END IF;
 							END IF;
                         ELSE
 							SELECT MAX(numero_sequencial)
 							  INTO V_ULTIMO_SEQUENCIAL
 							  FROM ticket
 							 WHERE empresaId = V_EMPRESA
-							   AND servicoId = V_SERVICO;
+							   AND servicoId = V_SERVICO
+                               AND DATE(data_hora_emissao) = DATE(SYSDATE());
 
 							IF (V_ULTIMO_SEQUENCIAL IS NULL) THEN
 								SET V_SEQUENCIAL := 1;
