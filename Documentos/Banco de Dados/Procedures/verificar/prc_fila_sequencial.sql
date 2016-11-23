@@ -1,10 +1,10 @@
-Delimiter $$
 CREATE PROCEDURE `PRC_FILA_SEQUENCIAL`( IN P_CODIGO_ACESSO VARCHAR(20) ,
 										OUT P_CODIGO 			INT		,
                                         OUT P_MENSAGEM		VARCHAR(255))
 BEGIN
 	DECLARE C_TICKET						INT;
 	DECLARE V_ULTIMO_SEQUENCIAL 			INT;
+    DECLARE V_PRIMEIRO_SEQUENCIAL			INT;
     DECLARE V_ULTIMO_SEQUENCIAL_PRIORITARIO INT;
     DECLARE V_SEQUENCIAL 					INT;
     DECLARE V_SERVICO						INT;
@@ -44,48 +44,78 @@ BEGIN
                      IF(V_PRIORITARIO IS NOT NULL) THEN
 
                         IF(V_PRIORITARIO = 1) THEN
-
-							SELECT MAX(numero_sequencial)
+							SELECT MIN(numero_sequencial), MAX(numero_sequencial)
+							  INTO V_PRIMEIRO_SEQUENCIAL, V_ULTIMO_SEQUENCIAL
+                              FROM ticket
+							 WHERE statusTicketId = 1
+							   AND DATE(data_hora_emissao) = DATE(SYSDATE());
+							
+                            SELECT MAX(numero_sequencial)
 							  INTO V_ULTIMO_SEQUENCIAL_PRIORITARIO
-							  FROM ticket
-							 WHERE empresaId 		  = V_EMPRESA
-							   AND servicoId 		  = V_SERVICO
-                               AND prioridadeTicketId = V_PRIORITARIO
-                               AND DATE(data_hora_emissao) = DATE(SYSDATE());
-
-                            IF (V_ULTIMO_SEQUENCIAL_PRIORITARIO IS NULL) THEN
-								SET V_SEQUENCIAL := 1;
-							ELSE
-								SET V_SEQUENCIAL := V_ULTIMO_SEQUENCIAL_PRIORITARIO + 3;
-							END IF;
-
-                            SELECT COUNT(*)
-							 INTO  V_CONFERE_SEQUENCIAL
-							 FROM  ticket
-							 WHERE empresaId 		  = V_EMPRESA
-							   AND servicoId 		  = V_SERVICO
-							   AND numero_sequencial  = V_SEQUENCIAL;
-
-							IF(V_CONFERE_SEQUENCIAL > 0) THEN
-								CALL PRC_REORDENA_FILA(V_SEQUENCIAL, V_EMPRESA, V_SERVICO, @CODIGO, @MENSAGEM);
-								SELECT @CODIGO,
+                              FROM ticket
+							 WHERE statusTicketId = 1
+							   AND DATE(data_hora_emissao) = DATE(SYSDATE())
+                               AND prioridadeTicketId = 1
+                               AND numero_sequencial BETWEEN V_PRIMEIRO_SEQUENCIAL 
+														 AND V_ULTIMO_SEQUENCIAL;
+							
+                            IF(V_ULTIMO_SEQUENCIAL_PRIORITARIO IS NULL) THEN
+								SELECT V_PRIMEIRO_SEQUENCIAL
+								  INTO V_SEQUENCIAL;
+                                
+                                CALL PRC_REORDENA_FILA(V_SEQUENCIAL, V_EMPRESA, V_SERVICO, @CODIGO, @MENSAGEM);
+                                SELECT @CODIGO,
 									   @MENSAGEM
 								INTO   V_CODIGO_PROCEDURE_REORDENAR,
 									   V_MENSAGEM_PROCEDURE_REORDENAR;
-							ELSE
-								SELECT COUNT(*)
-								INTO  V_CONFERE_ANTERIOR
-								FROM  ticket
-								WHERE empresaId 		  = V_EMPRESA
-								  AND servicoId 		  = V_SERVICO
-								  AND numero_sequencial   > V_ULTIMO_SEQUENCIAL_PRIORITARIO
-								  AND numero_sequencial   < V_SEQUENCIAL ;
+							
+                            ELSE
+								SELECT MAX(numero_sequencial)
+								  INTO V_ULTIMO_SEQUENCIAL_PRIORITARIO
+								  FROM ticket
+								 WHERE empresaId 		  = V_EMPRESA
+								   AND servicoId 		  = V_SERVICO
+								   AND prioridadeTicketId = V_PRIORITARIO
+								   AND DATE(data_hora_emissao) = DATE(SYSDATE());
 
-								 IF(V_CONFERE_ANTERIOR = 0) THEN
-									SET V_SEQUENCIAL := V_ULTIMO_SEQUENCIAL_PRIORITARIO + 1;
-								 ELSE
-									SET V_SEQUENCIAL := V_ULTIMO_SEQUENCIAL_PRIORITARIO + 2;
-								 END IF;
+								IF (V_ULTIMO_SEQUENCIAL_PRIORITARIO IS NULL) THEN
+									SET V_SEQUENCIAL := 1;
+								ELSE
+									SET V_SEQUENCIAL := V_ULTIMO_SEQUENCIAL_PRIORITARIO + 3;
+								END IF;
+
+								SELECT COUNT(*)
+								 INTO  V_CONFERE_SEQUENCIAL
+								 FROM  ticket
+								 WHERE empresaId 		  = V_EMPRESA
+								   AND servicoId 		  = V_SERVICO
+								   AND numero_sequencial  = V_SEQUENCIAL
+								   AND DATE(data_hora_emissao) = DATE(SYSDATE());
+								
+								IF(V_CONFERE_SEQUENCIAL > 0) THEN
+									CALL PRC_REORDENA_FILA(V_SEQUENCIAL, V_EMPRESA, V_SERVICO, @CODIGO, @MENSAGEM);
+									SELECT @CODIGO,
+										   @MENSAGEM
+									INTO   V_CODIGO_PROCEDURE_REORDENAR,
+										   V_MENSAGEM_PROCEDURE_REORDENAR;
+								ELSE
+									IF(V_ULTIMO_SEQUENCIAL_PRIORITARIO IS NOT NULL) THEN
+									
+										SELECT COUNT(*)
+										INTO  V_CONFERE_ANTERIOR
+										FROM  ticket
+										WHERE empresaId 		  = V_EMPRESA
+										  AND servicoId 		  = V_SERVICO
+										  AND numero_sequencial   > V_ULTIMO_SEQUENCIAL_PRIORITARIO
+										  AND numero_sequencial   < V_SEQUENCIAL ;
+										 
+										 IF(V_CONFERE_ANTERIOR = 0) THEN
+											SET V_SEQUENCIAL := V_ULTIMO_SEQUENCIAL_PRIORITARIO + 1;
+										 ELSEIF(V_CONFERE_ANTERIOR = 1) THEN
+											SET V_SEQUENCIAL := V_ULTIMO_SEQUENCIAL_PRIORITARIO + 2;
+										 END IF;
+									END IF;
+								END IF;
 							END IF;
                         ELSE
 							SELECT MAX(numero_sequencial)
@@ -146,4 +176,3 @@ BEGIN
     END IF;
 
 END
-$$
