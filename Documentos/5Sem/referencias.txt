@@ -15,10 +15,21 @@ JQUERY: https://jquery.com
 
 DJANGO: https://www.djangoproject.com/
 NODEJS: http://nodebr.com/o-que-e-node-js/
-SPRING: http://docs.spring.io/spring/docs/current/spring-framework-reference/html/overview.html
 
 GRADLE: https://docs.gradle.org/current/userguide/userguide.html
 NPM: https://docs.npmjs.com/getting-started/what-is-npm
-MAVEN: https://maven.apache.org/what-is-maven.html
 
-ORM: http://searchwindevelopment.techtarget.com/definition/object-relational-mapping
+ORM: http://www.service-architecture.com/articles/object-relational-mapping/object-relational_mapping_or_mapping_definition.html
+
+SQL: http://www.w3schools.com/sql/sql_intro.asp
+MYSQL: http://db-engines.com/en/ranking
+
+MYSQL WORKBENCH: http://www.mysql.com/products/workbench/
+
+ASTAH-COMMUNITY: http://astah.net/editions/community
+DRAW.IO: https://www.draw.io/
+INKSCAPE: https://inkscape.org/pt-br/about/
+
+TRELLO: http://help.trello.com/article/708-what-is-trello
+
+GIT: https://git-scm.com/book/en/v2/Getting-Started-Git-Basics e https://git-scm.com/about

@@ -18,7 +18,8 @@ desc ticket;
 insert into perfil(nome, descricao, createdAt, updatedAt) value('Suporte','Perfil de Suporte', sysdate(), sysdate());
 insert into perfil(nome, descricao, createdAt, updatedAt) value('Administrador','Perfil de Administrador', sysdate(), sysdate());
 insert into perfil(nome, descricao, createdAt, updatedAt) value('Funcionario','Perfil de Funcionario', sysdate(), sysdate());
-insert into status_ticket(nome, descricao, createdAt, updatedAt) values('Aguardando Atendimento','Ainda não foi atendido', sysdate(), sysdate());insert into status_ticket(nome, descricao, createdAt, updatedAt) values('Em atendimento','Esta em atendimento', sysdate(), sysdate());
+insert into status_ticket(nome, descricao, createdAt, updatedAt) values('Aguardando Atendimento','Ainda não foi atendido', sysdate(), sysdate());
+insert into status_ticket(nome, descricao, createdAt, updatedAt) values('Em atendimento','Esta em atendimento', sysdate(), sysdate());
 insert into status_ticket(nome, descricao, createdAt, updatedAt) values('Concluido','Ja foi atendido', sysdate(), sysdate());
 insert into status_ticket(nome, descricao, createdAt, updatedAt) values('Cancelado','Não compareceu ou desistencia do atendimento', sysdate(), sysdate());
 insert into prioridade_ticket(nome, descricao, createdAt, updatedAt) values ('Prioritario', 'Ticket que passa na frente', SYSDATE(), SYSDATE());
@@ -31,17 +32,32 @@ insert into ticket(numero_ticket, data_hora_emissao, codigo_acesso, createdAt, u
 insert into usuario(nome, email, data_ativacao, senha, data_inativacao, status_ativacao, createdAt, updatedAt, empresaId, perfilId) values('Alan', 'alan@alan.com', sysdate(), '123', sysdate(), 'Ativo', sysdate(), sysdate(), 1, 2);
 insert into usuario(nome, email, data_ativacao, senha, data_inativacao, status_ativacao, createdAt, updatedAt, empresaId, perfilId) values('Halu', 'halu@halu.com', sysdate(), '123', sysdate(), 'Ativo', sysdate(), sysdate(), 1, 2);
 insert into usuario(nome, email, data_ativacao, senha, data_inativacao, status_ativacao, createdAt, updatedAt, empresaId, perfilId) values('Pedro', 'pedro@pedro.com', sysdate(), '123', sysdate(), 'Ativo', sysdate(), sysdate(), 1, 2);
-
-CALL PRC_GERAR_TICKET (1, 1, 2, @codigo_ticket, @ticket, @codigo, @mensagem);
+commit;
+CALL PRC_GERAR_TICKET (1, 1, 1, @codigo_ticket, @ticket, @codigo, @mensagem);
 CALL PRC_FILA_SEQUENCIAL ('120161109CB3181', @codigo, @mensagem);
 
 SELECT @ticket, @codigo_ticket, @codigo, @mensagem;
 
-SELECT * FROM ticket ORDER BY 4, 1 DESC;
+SELECT * FROM ticket ORDER BY 2 DESC, 4 DESC;
 
 UPDATE ticket
-   SET numero_sequencial = 1;
+   SET statusTicketId = 3
+ WHERE numero_sequencial BETWEEN 1 AND 3;
 
 SELECT *
   FROM status_ticket;
   
+SELECT COUNT(*)
+ FROM  ticket
+ WHERE empresaId 		  = 1
+   AND servicoId 		  = 2
+   AND numero_sequencial  = 1
+   AND DATE(data_hora_emissao) = DATE(SYSDATE());
+   
+DELETE FROM ticket
+ WHERE numero_sequencial IS NULL;
+
+SELECT MIN(numero_sequencial), MAX(numero_sequencial)
+  FROM ticket
+ WHERE statusTicketId = 1
+   AND DATE(data_hora_emissao) = DATE(SYSDATE());
