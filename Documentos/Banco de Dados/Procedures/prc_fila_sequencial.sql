@@ -60,15 +60,18 @@ BEGIN
 														 AND V_ULTIMO_SEQUENCIAL;
 							
                             IF(V_ULTIMO_SEQUENCIAL_PRIORITARIO IS NULL) THEN
-								SELECT V_PRIMEIRO_SEQUENCIAL
-								  INTO V_SEQUENCIAL;
-                                
-                                CALL PRC_REORDENA_FILA(V_SEQUENCIAL, V_EMPRESA, V_SERVICO, @CODIGO, @MENSAGEM);
-                                SELECT @CODIGO,
-									   @MENSAGEM
-								INTO   V_CODIGO_PROCEDURE_REORDENAR,
-									   V_MENSAGEM_PROCEDURE_REORDENAR;
-							
+								IF (V_PRIMEIRO_SEQUENCIAL IS NULL) THEN
+									SET V_SEQUENCIAL := 1;
+								ELSE
+									SELECT V_PRIMEIRO_SEQUENCIAL
+									  INTO V_SEQUENCIAL;
+									
+									CALL PRC_REORDENA_FILA(V_SEQUENCIAL, V_EMPRESA, V_SERVICO, @CODIGO, @MENSAGEM);
+									SELECT @CODIGO,
+										   @MENSAGEM
+									INTO   V_CODIGO_PROCEDURE_REORDENAR,
+										   V_MENSAGEM_PROCEDURE_REORDENAR;
+								END IF;
                             ELSE
 								SELECT MAX(numero_sequencial)
 								  INTO V_ULTIMO_SEQUENCIAL_PRIORITARIO

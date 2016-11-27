@@ -27,37 +27,17 @@ insert into prioridade_ticket(nome, descricao, createdAt, updatedAt) values ('No
 insert into ramo_atividade(nome, descricao, status_ativacao, createdAt, updatedAt) values('Financeiro','Faz contas', 'Ativo', sysdate(), sysdate());
 insert into empresa(nome_fantasia, razao_social, numero_cnpj, logradouro, numero_logradouro, bairro, cidade, uf, cep, telefone, email, nome_responsavel, cargo_responsavel, cpf_responsavel, data_abertura, data_ativacao, status_ativacao, ramoAtividadeId, createdAt, updatedAt) values('TW314', 'TW314', '12345678912345', 'logradouro', 'numero_logradouro', 'bairro','Guaratingueta', 'SP', '12518160', '12345678912', 'teste@teste.com', 'Alan', 'Algum', '123', sysdate(), sysdate(), 'Ativo', 1, sysdate(), sysdate());
 insert into servico(nome, descricao, sigla, status_ativacao, createdAt, updatedAt, ramoAtividadeId) values('Contabilidade', 'Faz contas', 'CB', 'Ativo', sysdate(), sysdate(), 1);
-insert into relacionamento_emp_svc(status_ativacao, createdAt, updatedAt, empresaId, servicoId) values('Ativo', sysdate(), sysdate(), 1, 1);
-insert into ticket(numero_ticket, data_hora_emissao, codigo_acesso, createdAt, updatedAt, statusTicketId, empresaId, servicoId, prioridadeTicketId) values(314, sysdate(), CONCAT(DATE_FORMAT(SYSDATE(), '%Y%m%d'),'tw314'), sysdate(), sysdate(), 1, 1, 1, 1);
+insert into relacionamento_emp_svc(createdAt, updatedAt, empresaId, servicoId) values(sysdate(), sysdate(), 1, 1);
+insert into ticket(numero_sequencial, numero_ticket, data_hora_emissao, codigo_acesso, createdAt, updatedAt, statusTicketId, empresaId, servicoId, prioridadeTicketId) values(1, 314, sysdate(), CONCAT(DATE_FORMAT(SYSDATE(), '%Y%m%d'),'tw314'), sysdate(), sysdate(), 1, 1, 1, 1);
 insert into usuario(nome, email, data_ativacao, senha, data_inativacao, status_ativacao, createdAt, updatedAt, empresaId, perfilId) values('Alan', 'alan@alan.com', sysdate(), '123', sysdate(), 'Ativo', sysdate(), sysdate(), 1, 2);
 insert into usuario(nome, email, data_ativacao, senha, data_inativacao, status_ativacao, createdAt, updatedAt, empresaId, perfilId) values('Halu', 'halu@halu.com', sysdate(), '123', sysdate(), 'Ativo', sysdate(), sysdate(), 1, 2);
 insert into usuario(nome, email, data_ativacao, senha, data_inativacao, status_ativacao, createdAt, updatedAt, empresaId, perfilId) values('Pedro', 'pedro@pedro.com', sysdate(), '123', sysdate(), 'Ativo', sysdate(), sysdate(), 1, 2);
 commit;
+
+DELETE FROM ticket ;
 CALL PRC_GERAR_TICKET (1, 1, 1, @codigo_ticket, @ticket, @codigo, @mensagem);
-CALL PRC_FILA_SEQUENCIAL ('120161109CB3181', @codigo, @mensagem);
 
-SELECT @ticket, @codigo_ticket, @codigo, @mensagem;
-
-SELECT * FROM ticket ORDER BY 2 DESC, 4 DESC;
-
-UPDATE ticket
-   SET statusTicketId = 3
- WHERE numero_sequencial BETWEEN 1 AND 3;
+SELECT * FROM ticket WHERE DATE(data_hora_emissao) = DATE(SYSDATE()) ORDER BY 2 DESC, 4 DESC;
 
 SELECT *
   FROM status_ticket;
-  
-SELECT COUNT(*)
- FROM  ticket
- WHERE empresaId 		  = 1
-   AND servicoId 		  = 2
-   AND numero_sequencial  = 1
-   AND DATE(data_hora_emissao) = DATE(SYSDATE());
-   
-DELETE FROM ticket
- WHERE numero_sequencial IS NULL;
-
-SELECT MIN(numero_sequencial), MAX(numero_sequencial)
-  FROM ticket
- WHERE statusTicketId = 1
-   AND DATE(data_hora_emissao) = DATE(SYSDATE());
