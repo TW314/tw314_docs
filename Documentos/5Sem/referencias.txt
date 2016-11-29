@@ -1,4 +1,4 @@
-Referências:
+﻿Referências:
 Python: https://wiki.python.org/moin/BeginnersGuide/Overview
 Java: https://java.com/en/download/faq/whatis_java.xml
 Android: https://recombu.com/mobile/article/what-is-android-and-what-is-an-android-phone_M12615.html
@@ -33,3 +33,5 @@ INKSCAPE: https://inkscape.org/pt-br/about/
 TRELLO: http://help.trello.com/article/708-what-is-trello
 
 GIT: https://git-scm.com/book/en/v2/Getting-Started-Git-Basics e https://git-scm.com/about
+
+JSON Web Token - https://jwt.io/introduction/
